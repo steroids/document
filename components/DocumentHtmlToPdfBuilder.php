@@ -1,6 +1,6 @@
 <?php
 
-namespace app\helpers\components;
+namespace steroids\document\components;
 
 use Yii;
 use yii\base\Exception;
@@ -14,7 +14,8 @@ class DocumentHtmlToPdfBuilder
     {
         // Normalize html
         $html = html_entity_decode($html);
-        $html = str_replace('<body', '<body style="margin: -30pt; zoom: 1.3;"', $html);
+        $html = str_replace('<html>', '<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html);
+        $html = str_replace('<body', '<body style="zoom: 1.3;"', $html);
         $html = str_replace('<table', '<table border="none"', $html);
 
         // Insert variable values

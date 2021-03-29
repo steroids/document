@@ -2,6 +2,7 @@
 
 namespace steroids\document\controllers;
 
+use steroids\document\DocumentModule;
 use steroids\document\models\Document;
 use steroids\document\models\DocumentUser;
 use yii\web\Controller;
@@ -15,7 +16,7 @@ class DocumentController extends Controller
             'document' => [
                 'items' => [
                     'download' => '/api/v1/document/download/<name>',
-                    'download-user' => '/api/v1/document/download-user/<id:\d+>',
+                    'download-user' => '/api/v1/document/download-user/<uid>',
                 ],
             ],
         ];
@@ -39,9 +40,10 @@ class DocumentController extends Controller
      * @throws NotFoundHttpException
      * @throws \yii\base\Exception
      */
-    public function actionDownloadUser($id)
+    public function actionDownloadUser($uid)
     {
-        $documentUser = DocumentUser::findOrPanic(['id' => (int)$id]);
+        $documentUserClass = DocumentModule::instantiateClass(DocumentUser::class);
+        $documentUser = $documentUserClass::findOrPanic(['uid' => $uid]);
         return $this->response->sendFile($documentUser->download());
     }
 }

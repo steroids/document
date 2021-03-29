@@ -1,6 +1,6 @@
 <?php
 
-namespace app\document\components;
+namespace steroids\document\components;
 
 use steroids\document\enums\DocumentOriginalStatus;
 use steroids\document\enums\DocumentScanStatus;
@@ -48,6 +48,17 @@ class DocumentGroupedStatus extends BaseObject
      * @var string|null
      */
     public ?string $date = null;
+
+    public function fields()
+    {
+        return [
+            'statusLabel',
+            'actionLabel',
+            'actionName',
+            'color',
+            'date',
+        ];
+    }
 
     /**
      * @param Document $document
@@ -208,5 +219,4 @@ class DocumentGroupedStatus extends BaseObject
 
         return $successResult ? new static($successResult) : null;
     }
-
 }

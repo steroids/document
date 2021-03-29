@@ -33,6 +33,7 @@ use steroids\document\models\DocumentParam;
  * @property string $versionTime
  * @property string $createTime
  * @property string $updateTime
+ * @property integer $codeNumberMinLength
  * @property-read File $file
  * @property-read DocumentCategory $category
  * @property-read DocumentParam[] $params
@@ -66,7 +67,7 @@ abstract class DocumentMeta extends Model
     {
         return [
             ...parent::rules(),
-            [['fileId', 'categoryId', 'codeLastNumber'], 'integer'],
+            [['fileId', 'categoryId', 'codeLastNumber', 'codeNumberMinLength'], 'integer'],
             [['name', 'title', 'codePrefix'], 'string', 'max' => 255],
             [['name', 'type', 'title'], 'required'],
             ['type', 'in', 'range' => DocumentType::getKeys()],
@@ -216,6 +217,11 @@ abstract class DocumentMeta extends Model
                 'appType' => 'autoTime',
                 'isPublishToFrontend' => false,
                 'touchOnUpdate' => true
+            ],
+            'codeNumberMinLength' => [
+                'label' => Yii::t('steroids', 'Минимальная длина номера документа'),
+                'appType' => 'integer',
+                'isPublishToFrontend' => false
             ]
         ]);
     }
