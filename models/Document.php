@@ -7,11 +7,14 @@ use steroids\document\enums\DocumentType;
 use steroids\document\models\meta\DocumentMeta;
 use steroids\billing\models\BillingCurrency;
 use yii\base\Exception;
+use yii\helpers\FileHelper;
+use yii\helpers\Url;
 use yii\web\NotFoundHttpException;
 
 /**
  * Class Document
  * @package steroids\document\models
+ * @property-read string $downloadName
  */
 class Document extends DocumentMeta
 {
@@ -54,6 +57,24 @@ class Document extends DocumentMeta
             ['signMode', 'required', 'when' => fn() => $this->isSignRequired],
             ['codeNumberMinLength', 'default', 'value' => DocumentModule::getInstance()->defaultCodeNumberMinLength],
         ];
+    }
+
+    public function getLink()
+    {
+        return \Yii::$app->params['backendOrigin'] . Url::to(['/document/document/download', 'name' => $this->downloadName]);
+    }
+
+    public function getDownloadName($suffix = '')
+    {
+        $ext = null;
+        if (!$ext && $this->file) {
+            $ext = pathinfo($this->file->fileName, PATHINFO_EXTENSION);
+        }
+        if (!$ext && $this->type === DocumentType::TEMPLATE_HTML) {
+            $ext = 'pdf';
+        }
+
+        return $this->name . $suffix . ($ext ? '.' . $ext : '');
     }
 
     /**

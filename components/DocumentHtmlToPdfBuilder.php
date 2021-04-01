@@ -17,6 +17,7 @@ class DocumentHtmlToPdfBuilder
         $html = str_replace('<html>', '<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html);
         $html = str_replace('<body', '<body style="zoom: 1.3;"', $html);
         $html = str_replace('<table', '<table border="none"', $html);
+        $html = preg_replace('/{<\\/span><span style="[^"]+">([a-zA-Zа-яА-Я0-9]+)<\\/span><span style="[^"]+">}/u', '{$1}', $html);
 
         // Insert variable values
         $html = str_replace(
@@ -27,6 +28,10 @@ class DocumentHtmlToPdfBuilder
             array_values($params),
             $html
         );
+
+        if (YII_DEBUG && isset($_GET['html'])) {
+            return $html;
+        }
 
         return static::generatePdf($name, $html);
     }

@@ -18,6 +18,7 @@ use yii\base\Exception;
 use yii\db\ActiveQuery;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+use yii\helpers\Url;
 use yii\web\IdentityInterface;
 
 /**
@@ -31,6 +32,7 @@ use yii\web\IdentityInterface;
  * @property-read array $userParams
  * @property-read array $refParams
  * @property-read string $code
+ * @property-read string $downloadName
  */
 class DocumentUser extends DocumentUserMeta
 {
@@ -63,6 +65,7 @@ class DocumentUser extends DocumentUserMeta
             parent::fields(),
             [
                 'code',
+                'link',
                 'groupedStatus',
             ]
         );
@@ -96,6 +99,16 @@ class DocumentUser extends DocumentUserMeta
         }
 
         return parent::beforeSave($insert);
+    }
+
+    public function getLink()
+    {
+        return \Yii::$app->params['backendOrigin'] . Url::to(['/document/document/download-user', 'uid' => $this->uid, 'name' => $this->downloadName]);
+    }
+
+    public function getDownloadName($suffix = '')
+    {
+        return $this->document->getDownloadName('_' . $this->codeNumber . $suffix);
     }
 
     public function download()

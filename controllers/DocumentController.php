@@ -5,6 +5,7 @@ namespace steroids\document\controllers;
 use steroids\document\DocumentModule;
 use steroids\document\models\Document;
 use steroids\document\models\DocumentUser;
+use yii\helpers\StringHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
@@ -15,8 +16,8 @@ class DocumentController extends Controller
         return [
             'document' => [
                 'items' => [
-                    'download' => '/api/v1/document/download/<name>',
-                    'download-user' => '/api/v1/document/download-user/<uid>',
+                    'download' => '/backend/document/download/<name>',
+                    'download-user' => '/backend/document/download-user/<uid>/<name>',
                 ],
             ],
         ];
@@ -30,8 +31,11 @@ class DocumentController extends Controller
      */
     public function actionDownload($name)
     {
+        // Remove extension
+        $name = substr($name, 0, strrpos($name, '.'));
+
         $document = Document::getByName($name);
-        return $this->response->sendFile($document->download());
+        return $this->response->sendFile($document->download(), $document->downloadName);
     }
 
     /**
@@ -40,10 +44,13 @@ class DocumentController extends Controller
      * @throws NotFoundHttpException
      * @throws \yii\base\Exception
      */
-    public function actionDownloadUser($uid)
+    public function actionDownloadUser($uid, $name)
     {
         $documentUserClass = DocumentModule::instantiateClass(DocumentUser::class);
         $documentUser = $documentUserClass::findOrPanic(['uid' => $uid]);
-        return $this->response->sendFile($documentUser->download());
+        if (YII_DEBUG && isset($_GET['html'])) {
+            return $documentUser->download();
+        }
+        return $this->response->sendFile($documentUser->download(), $documentUser->downloadName);
     }
 }
