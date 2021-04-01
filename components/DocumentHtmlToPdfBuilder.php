@@ -15,8 +15,8 @@ class DocumentHtmlToPdfBuilder
         // Normalize html
         $html = html_entity_decode($html);
         $html = str_replace('<html>', '<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">', $html);
-        $html = str_replace('<body', '<body style="zoom: 1.3;"', $html);
-        $html = str_replace('<table', '<table border="none"', $html);
+        //$html = str_replace('<body', '<body style="zoom: 1.3;"', $html);
+        $html = str_replace('<html>', '<html><style>body{margin-left: 1em;} figure {margin-left: 0; margin-top: 0;} table {border-spacing: 0; border: 1px;}</style>', $html);
         $html = preg_replace('/{<\\/span><span style="[^"]+">([a-zA-Zа-яА-Я0-9]+)<\\/span><span style="[^"]+">}/u', '{$1}', $html);
 
         // Insert variable values
