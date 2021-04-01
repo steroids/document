@@ -35,7 +35,7 @@ class DocumentController extends Controller
         $name = substr($name, 0, strrpos($name, '.'));
 
         $document = Document::getByName($name);
-        return $this->response->sendFile($document->download(), $document->downloadName);
+        return $this->response->sendFile($document->download(), $document->downloadName, ['inline' => true]);
     }
 
     /**
@@ -51,6 +51,6 @@ class DocumentController extends Controller
         if (YII_DEBUG && isset($_GET['html'])) {
             return $documentUser->download();
         }
-        return $this->response->sendFile($documentUser->download(), $documentUser->downloadName);
+        return $this->response->sendFile($documentUser->download(), $documentUser->downloadName, ['inline' => true]);
     }
 }

@@ -65,6 +65,7 @@ class DocumentUser extends DocumentUserMeta
             parent::fields(),
             [
                 'code',
+                'name' => 'document.name',
                 'link',
                 'groupedStatus',
             ]
