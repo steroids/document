@@ -201,6 +201,9 @@ class DocumentUser extends DocumentUserMeta
         return DocumentGroupedStatus::create($this->document, $this, $user);
     }
 
+    /**
+     * @return string
+     */
     public function getCode()
     {
         return $this->document->codePrefix
