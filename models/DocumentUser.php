@@ -104,6 +104,9 @@ class DocumentUser extends DocumentUserMeta
 
     public function getLink()
     {
+        if ($this->document->type === DocumentType::BLANK) {
+            return null;
+        }
         return \Yii::$app->params['backendOrigin'] . Url::to(['/document/document/download-user', 'uid' => $this->uid, 'name' => $this->downloadName]);
     }
 

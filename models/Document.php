@@ -44,6 +44,47 @@ class Document extends DocumentMeta
         return array_values(static::$_instances);
     }
 
+    public static function findNames($categories = null, $tags = null, $condition = null)
+    {
+        $query = Document::find()->alias('document');
+
+        // Categories
+        $categoryIds = DocumentCategory::find()
+            ->select('id')
+            ->where(['name' => $categories])
+            ->column();
+        if (!empty($categoryIds)) {
+            $query->andWhere(['categoryId' => $categoryIds]);
+        }
+
+        // Tags
+        $tagIds = DocumentTag::find()
+            ->select('id')
+            ->where(['name' => $tags])
+            ->column();
+        if (!empty($tagIds)) {
+            $query
+                ->innerJoin('document_tags_junction j', 'j."documentId" = document.id')
+                ->andWhere(['tagId' => $tagIds]);
+        }
+
+        // Custom condition
+        if (is_array($condition)) {
+            $query->andWhere($condition);
+        } elseif (is_callable($condition)) {
+            call_user_func($condition, $query);
+        }
+
+        return $query
+            ->select('name')
+            ->orderBy([
+                'position' => SORT_ASC,
+                'id' => SORT_ASC,
+            ])
+            ->column();
+    }
+
+
     /**
      * @inheritDoc
      */

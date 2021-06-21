@@ -11,6 +11,7 @@ use yii\db\ActiveQuery;
 use steroids\file\models\File;
 use steroids\document\models\DocumentCategory;
 use steroids\document\models\DocumentParam;
+use steroids\document\models\DocumentTag;
 
 /**
  * @property string $id
@@ -34,9 +35,12 @@ use steroids\document\models\DocumentParam;
  * @property string $createTime
  * @property string $updateTime
  * @property integer $codeNumberMinLength
+ * @property boolean $isScanMultiple
+ * @property integer $position
  * @property-read File $file
  * @property-read DocumentCategory $category
  * @property-read DocumentParam[] $params
+ * @property-read DocumentTag[] $tags
  */
 abstract class DocumentMeta extends Model
 {
@@ -60,6 +64,7 @@ abstract class DocumentMeta extends Model
             'isPaymentRequired',
             'isVerificationRequired',
             'versionTime',
+            'isScanMultiple',
         ];
     }
 
@@ -67,13 +72,13 @@ abstract class DocumentMeta extends Model
     {
         return [
             ...parent::rules(),
-            [['fileId', 'categoryId', 'codeLastNumber', 'codeNumberMinLength'], 'integer'],
+            [['fileId', 'categoryId', 'codeLastNumber', 'codeNumberMinLength', 'position'], 'integer'],
             [['name', 'title', 'codePrefix'], 'string', 'max' => 255],
             [['name', 'type', 'title'], 'required'],
             ['type', 'in', 'range' => DocumentType::getKeys()],
             ['templateHtml', 'string'],
             ['signMode', 'in', 'range' => DocumentSignMode::getKeys()],
-            [['isSignRequired', 'isScanRequired', 'isOriginalRequired', 'isReadRequired', 'isPaymentRequired', 'isVerificationRequired', 'isVisible'], 'steroids\\core\\validators\\ExtBooleanValidator'],
+            [['isSignRequired', 'isScanRequired', 'isOriginalRequired', 'isReadRequired', 'isPaymentRequired', 'isVerificationRequired', 'isVisible', 'isScanMultiple'], 'steroids\\core\\validators\\ExtBooleanValidator'],
             ['versionTime', 'date', 'format' => 'php:Y-m-d H:i:s'],
         ];
     }
@@ -108,6 +113,15 @@ abstract class DocumentMeta extends Model
     public function getParams()
     {
         return $this->hasMany(DocumentParam::class, ['documentId' => 'id']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getTags()
+    {
+        return $this->hasMany(DocumentTag::class, ['id' => 'documentId'])
+            ->viaTable('document_tags_junction', ['tagId' => 'id']);
     }
 
     public static function meta()
@@ -220,6 +234,16 @@ abstract class DocumentMeta extends Model
             ],
             'codeNumberMinLength' => [
                 'label' => Yii::t('steroids', 'Минимальная длина номера документа'),
+                'appType' => 'integer',
+                'isPublishToFrontend' => false
+            ],
+            'isScanMultiple' => [
+                'label' => Yii::t('steroids', 'Можно загружать несколько сканов'),
+                'appType' => 'boolean',
+                'isPublishToFrontend' => true
+            ],
+            'position' => [
+                'label' => Yii::t('steroids', 'Порядок'),
                 'appType' => 'integer',
                 'isPublishToFrontend' => false
             ]

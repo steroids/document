@@ -12,6 +12,7 @@ use \Yii;
 use yii\db\ActiveQuery;
 use steroids\document\models\Document;
 use steroids\auth\models\AuthConfirm;
+use steroids\file\models\File;
 
 /**
  * @property string $id
@@ -41,12 +42,19 @@ use steroids\auth\models\AuthConfirm;
  * @property string $paidTime
  * @property string $readTime
  * @property integer $secondUserId
+ * @property integer $scanModeratorId
+ * @property string $scanModeratorComment
+ * @property integer $originalModeratorId
+ * @property string $originalModeratorComment
  * @property-read Document $document
  * @property-read AuthConfirm $firstSignConfirm
  * @property-read AuthConfirm $secondSignConfirm
+ * @property-read File[] $scans
  */
 abstract class DocumentUserMeta extends Model
 {
+    public array $scansIds = [];
+
     public static function tableName()
     {
         return 'document_users';
@@ -76,6 +84,10 @@ abstract class DocumentUserMeta extends Model
             'verificationStatusTime',
             'paidTime',
             'readTime',
+            'scanModeratorId',
+            'scanModeratorComment',
+            'originalModeratorId',
+            'originalModeratorComment',
         ];
     }
 
@@ -84,14 +96,15 @@ abstract class DocumentUserMeta extends Model
         return [
             ...parent::rules(),
             ['uid', 'string', 'max' => 255],
-            [['documentId', 'userId', 'refId', 'codeNumber', 'firstSignConfirmId', 'secondSignConfirmId', 'secondUserId'], 'integer'],
+            [['documentId', 'userId', 'refId', 'codeNumber', 'firstSignConfirmId', 'secondSignConfirmId', 'secondUserId', 'scanModeratorId', 'originalModeratorId'], 'integer'],
             [['firstSignStatus', 'secondSignStatus'], 'in', 'range' => DocumentSignStatus::getKeys()],
             [['firstSignStatusTime', 'secondSignStatusTime', 'scanStatusTime', 'originalStatusTime', 'versionTime', 'verificationStatusTime', 'paidTime', 'readTime'], 'date', 'format' => 'php:Y-m-d H:i:s'],
             ['scanStatus', 'in', 'range' => DocumentScanStatus::getKeys()],
             ['originalStatus', 'in', 'range' => DocumentOriginalStatus::getKeys()],
-            ['paramsJson', 'string'],
+            [['paramsJson', 'scanModeratorComment', 'originalModeratorComment'], 'string'],
             [['isRead', 'isPaid'], 'steroids\\core\\validators\\ExtBooleanValidator'],
             ['verificationStatus', 'in', 'range' => DocumentVerificationStatus::getKeys()],
+            ['scansIds', 'each', 'rule' => ['integer']],
         ];
     }
 
@@ -125,6 +138,15 @@ abstract class DocumentUserMeta extends Model
     public function getSecondSignConfirm()
     {
         return $this->hasOne(AuthConfirm::class, ['id' => 'secondSignConfirmId']);
+    }
+
+    /**
+     * @return ActiveQuery
+     */
+    public function getScans()
+    {
+        return $this->hasMany(File::class, ['id' => 'fileId'])
+            ->viaTable('document_user_files_junction', ['documentUserId' => 'id']);
     }
 
     public static function meta()
@@ -270,6 +292,32 @@ abstract class DocumentUserMeta extends Model
                 'label' => Yii::t('steroids', 'Второй пользователь'),
                 'appType' => 'integer',
                 'isPublishToFrontend' => false
+            ],
+            'scansIds' => [
+                'label' => Yii::t('steroids', 'Загруженные сканы'),
+                'appType' => 'files',
+                'isPublishToFrontend' => false,
+                'relationName' => 'scans'
+            ],
+            'scanModeratorId' => [
+                'label' => Yii::t('steroids', 'Модератор скана'),
+                'appType' => 'integer',
+                'isPublishToFrontend' => true
+            ],
+            'scanModeratorComment' => [
+                'label' => Yii::t('steroids', 'Комментарий модератора по скану'),
+                'appType' => 'text',
+                'isPublishToFrontend' => true
+            ],
+            'originalModeratorId' => [
+                'label' => Yii::t('steroids', 'Модератор оригинала'),
+                'appType' => 'integer',
+                'isPublishToFrontend' => true
+            ],
+            'originalModeratorComment' => [
+                'label' => Yii::t('steroids', 'Комментарий модератора по оригиналу'),
+                'appType' => 'text',
+                'isPublishToFrontend' => true
             ]
         ]);
     }
