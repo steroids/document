@@ -12,6 +12,11 @@ use steroids\document\forms\meta\DocumentUploadScanFormMeta;
 use yii\base\Exception;
 use yii\helpers\ArrayHelper;
 
+/**
+ * Class DocumentUploadScanForm
+ * @package steroids\document\forms
+ * @property-read Document[] $documents
+ */
 class DocumentUploadScanForm extends DocumentUploadScanFormMeta
 {
     /**
@@ -37,33 +42,31 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
     /**
      * @var Document[]
      */
-    public array $documents;
+    public array $_documents;
 
     /**
      * @var DocumentUser[]
      */
     public array $userDocuments = [];
 
-    /**
-     * @inheritDoc
-     * @throws Exception
-     */
-    public function init()
-    {
-        parent::init();
 
-        // Preload documents models
-        $this->documents = Document::find()
-            ->where(['name' => $this->names])
-            ->indexBy('name')
-            ->orderBy([
-                'position' => SORT_ASC,
-                'id' => SORT_ASC,
-            ])
-            ->all();
-        if (count($this->documents) !== count($this->names)) {
-            throw new Exception('Cannot find documents: ' . array_diff($this->names, array_keys($this->documents)));
+    private function getDocuments()
+    {
+        if (!$this->_documents) {
+            // Preload documents models
+            $this->_documents = Document::find()
+                ->where(['name' => $this->names])
+                ->indexBy('name')
+                ->orderBy([
+                    'position' => SORT_ASC,
+                    'id' => SORT_ASC,
+                ])
+                ->all();
+            if (count($this->_documents) !== count($this->names)) {
+                throw new Exception('Cannot find documents: ' . array_diff($this->names, array_keys($this->_documents)));
+            }
         }
+        return $this->_documents;
     }
 
     public function fields()
@@ -90,10 +93,10 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                 'scanStatus',
                 'scanStatusTime',
                 'scanModeratorComment',
-                'scans' => function(DocumentUser $documentUser) {
+                'scans' => function (DocumentUser $documentUser) {
                     return array_map(
-                        function(File $file) {
-                            $preview = $file->getImagePreview();
+                        function (File $file) {
+                            $preview = $file->isImage() ? $file->getImagePreview() : null;
                             return array_merge($file->getExtendedAttributes(), [
                                 'thumbnailUrl' => $preview ? $preview->url : null,
                             ]);
