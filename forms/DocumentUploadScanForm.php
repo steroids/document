@@ -42,15 +42,14 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
     /**
      * @var Document[]
      */
-    public array $_documents;
+    public ?array $_documents = null;
 
     /**
      * @var DocumentUser[]
      */
     public array $userDocuments = [];
 
-
-    private function getDocuments()
+    public function getDocuments()
     {
         if (!$this->_documents) {
             // Preload documents models
