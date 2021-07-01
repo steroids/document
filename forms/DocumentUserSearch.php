@@ -36,6 +36,11 @@ class DocumentUserSearch extends DocumentUserSearchMeta
                 'codeNumber' => $this->codeNumber,
             ])
             ->andFilterWhere(['like', 'LOWER(title)', mb_strtolower(trim($this->title ?: ''))])
-            ->orderBy(['id' => SORT_DESC]);
+            ->orderBy([
+                'scanStatus' => SORT_ASC,
+                'originalStatus' => SORT_ASC,
+                'id' => SORT_DESC
+            ]);
+
     }
 }
