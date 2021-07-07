@@ -80,6 +80,7 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                     'name',
                     'title',
                     'file',
+                    'link',
                     'isScanMultiple',
                     'category' => [
                         'name',

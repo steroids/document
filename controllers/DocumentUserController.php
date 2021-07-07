@@ -17,9 +17,10 @@ class DocumentUserController extends Controller
         return [
             'document-user' => [
                 'items' => [
-                    'create' => 'POST /api/v1/document-user/<name>',
-                    'sign-start' => 'POST /api/v1/document-user/sign-start/<uid>',
-                    'sign-confirm' => 'POST /api/v1/document-user/sign-confirm/<uid>',
+                    'create' => 'POST /api/v1/document/<name>',
+                    'sign-start' => 'POST /api/v1/document/<uid>/sign-start',
+                    'sign-confirm' => 'POST /api/v1/document/<uid>/sign-confirm',
+                    'mark-read' => 'POST /api/v1/document/<uid>/mark-read',
                 ],
             ],
         ];
@@ -59,6 +60,13 @@ class DocumentUserController extends Controller
             $documentUser->signComplete();
         }
 
+        return $model;
+    }
+
+    public function actionRead(string $uid)
+    {
+        $model = DocumentUser::findOrPanic(['uid' => $uid]);
+        $model->markRead();
         return $model;
     }
 }
