@@ -81,6 +81,12 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                     'title',
                     'file',
                     'link',
+                    'isSignRequired',
+                    'isScanRequired',
+                    'isOriginalRequired',
+                    'isReadRequired',
+                    'isPaymentRequired',
+                    'isVerificationRequired',
                     'isScanMultiple',
                     'category' => [
                         'name',
