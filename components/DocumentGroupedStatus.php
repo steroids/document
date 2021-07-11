@@ -11,6 +11,7 @@ use steroids\document\models\Document;
 use steroids\document\models\DocumentUser;
 use yii\base\BaseObject;
 use yii\base\Exception;
+use yii\helpers\ArrayHelper;
 
 class DocumentGroupedStatus extends BaseObject
 {
@@ -18,6 +19,12 @@ class DocumentGroupedStatus extends BaseObject
     const ACTION_SIGN = 'sign';
     const ACTION_UPLOAD_SCAN = 'upload_scan';
     const ACTION_PAYMENT = 'payment';
+
+    /**
+     * Предыдущий статус
+     * @var string|null
+     */
+    public ?string $prevStatusLabel = null;
 
     /**
      * Статус
@@ -49,14 +56,22 @@ class DocumentGroupedStatus extends BaseObject
      */
     public ?string $date = null;
 
+    /**
+     * Комментарий модератора (для статуса "отклонен")
+     * @var string|null
+     */
+    public ?string $moderatorComment = null;
+
     public function fields()
     {
         return [
+            'prevStatusLabel',
             'statusLabel',
             'actionLabel',
             'actionName',
             'color',
             'date',
+            'moderatorComment',
         ];
     }
 
@@ -75,6 +90,7 @@ class DocumentGroupedStatus extends BaseObject
         if ($document->isReadRequired) {
             if (!$documentUser || !$documentUser->isRead) {
                 return new static([
+                    'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                     'statusLabel' => \Yii::t('app', 'Необходимо ознакомиться'),
                     'actionLabel' => \Yii::t('app', 'Прочитал'),
                     'actionName' => self::ACTION_READ,
@@ -101,6 +117,7 @@ class DocumentGroupedStatus extends BaseObject
                     if (!$documentUser || $documentUser->firstSignStatus !== DocumentSignStatus::SIGNED
                         || $documentUser->secondSignStatus !== DocumentSignStatus::SIGNED) {
                         return new static([
+                            'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                             'statusLabel' => $documentUser
                                 ? ($isContextUserNotSigned
                                     ? \Yii::t('app', 'Ожидаем вашей подписи')
@@ -119,6 +136,7 @@ class DocumentGroupedStatus extends BaseObject
                 case DocumentSignMode::ONE:
                     if (!$documentUser || $documentUser->firstSignStatus !== DocumentSignStatus::SIGNED) {
                         return new static([
+                            'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                             'statusLabel' => \Yii::t('app', 'Необходимо подписать по СМС'),
                             'actionLabel' => $isContextUserNotSigned ? \Yii::t('app', 'Подписать') : null,
                             'actionName' => $isContextUserNotSigned ? self::ACTION_SIGN : null,
@@ -143,11 +161,19 @@ class DocumentGroupedStatus extends BaseObject
         if ($document->isScanRequired) {
             if (!$documentUser || $documentUser->scanStatus !== DocumentScanStatus::ACCEPTED) {
                 return new static([
+                    'prevStatusLabel' => $documentUser && $documentUser->scanStatus === DocumentScanStatus::UPLOADED
+                        ? \Yii::t('app', 'Загружен')
+                        : ArrayHelper::getValue($successResult, 'statusLabel'),
                     'statusLabel' => $documentUser && $documentUser->scanStatus
                         ? DocumentScanStatus::getLabel($documentUser->scanStatus)
                         : \Yii::t('app', 'Необходимо загрузить скан'),
-                    'actionLabel' => \Yii::t('app', 'Загрузить скан'),
+                    'actionLabel' => $documentUser && $documentUser->scanStatus === DocumentScanStatus::UPLOADED
+                        ? \Yii::t('app', 'Обновить')
+                        : \Yii::t('app', 'Загрузить скан'),
                     'actionName' => self::ACTION_UPLOAD_SCAN,
+                    'moderatorComment' => $documentUser && $documentUser->scanStatus === DocumentScanStatus::REJECTED
+                        ? $documentUser->scanModeratorComment
+                        : null,
                     'color' => $documentUser && $documentUser->scanStatus === DocumentScanStatus::REJECTED ? 'error' : 'info',
                     'date' => $documentUser && $documentUser->scanStatusTime ? date('Y-m-d', strtotime($documentUser->scanStatusTime)) : null,
                 ]);
@@ -164,6 +190,7 @@ class DocumentGroupedStatus extends BaseObject
         if ($documentUser && $document->isVerificationRequired) {
             if ($documentUser->verificationStatus !== DocumentVerificationStatus::ACCEPTED) {
                 return new static([
+                    'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                     'statusLabel' => $documentUser->verificationStatus
                         ? DocumentVerificationStatus::getLabel($documentUser->verificationStatus)
                         : \Yii::t('app', 'Требуется верификация'),
@@ -173,7 +200,7 @@ class DocumentGroupedStatus extends BaseObject
             }
 
             $successResult = [
-                'statusLabel' => DocumentScanStatus::getLabel($documentUser->scanStatus),
+                'statusLabel' => DocumentVerificationStatus::getLabel($documentUser->verificationStatus),
                 'color' => 'success',
                 'date' => date('Y-m-d', strtotime($documentUser->verificationStatusTime)),
             ];
@@ -183,16 +210,20 @@ class DocumentGroupedStatus extends BaseObject
         if ($document->isOriginalRequired) {
             if (!$documentUser || $documentUser->originalStatus !== DocumentOriginalStatus::ACCEPTED) {
                 return new static([
+                    'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                     'statusLabel' => $documentUser && $documentUser->originalStatus
-                        ? DocumentScanStatus::getLabel($documentUser->originalStatus)
+                        ? DocumentOriginalStatus::getLabel($documentUser->originalStatus)
                         : \Yii::t('app', 'Требуется оригинал'),
+                    'moderatorComment' => $documentUser && $documentUser->originalStatus === DocumentOriginalStatus::REJECTED
+                        ? $documentUser->originalModeratorComment
+                        : null,
                     'color' => $documentUser && $documentUser->originalStatus === DocumentOriginalStatus::REJECTED ? 'error' : 'info',
                     'date' => $documentUser && $documentUser->originalStatusTime ? date('Y-m-d', strtotime($documentUser->originalStatusTime)) : null,
                 ]);
             }
 
             $successResult = [
-                'statusLabel' => DocumentScanStatus::getLabel($documentUser->originalStatus),
+                'statusLabel' => DocumentOriginalStatus::getLabel($documentUser->originalStatus),
                 'color' => 'success',
                 'date' => date('Y-m-d', strtotime($documentUser->originalStatusTime)),
             ];
@@ -202,6 +233,7 @@ class DocumentGroupedStatus extends BaseObject
         if ($document->isPaymentRequired) {
             if (!$documentUser || !$documentUser->isPaid) {
                 return new static([
+                    'prevStatusLabel' => ArrayHelper::getValue($successResult, 'statusLabel'),
                     'statusLabel' => \Yii::t('app', 'Требуется оплата'),
                     'color' => 'info',
                     'date' => null,

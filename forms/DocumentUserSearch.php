@@ -3,6 +3,7 @@
 namespace steroids\document\forms;
 
 use steroids\document\forms\meta\DocumentUserSearchMeta;
+use steroids\document\models\DocumentUser;
 
 class DocumentUserSearch extends DocumentUserSearchMeta
 {
@@ -12,7 +13,12 @@ class DocumentUserSearch extends DocumentUserSearchMeta
             'id',
             'uid',
             'code',
-            'document',
+            'link',
+            'document' => [
+                '*',
+                'type',
+                'link',
+            ],
             'scanStatus',
             'scanStatusTime',
             'scanModeratorId',

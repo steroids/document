@@ -59,6 +59,14 @@ class DocumentUser extends DocumentUserMeta
         return $model;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function instantiate($row)
+    {
+        return DocumentModule::instantiateClass(static::class, $row);
+    }
+
     public function fields()
     {
         return array_merge(
@@ -104,8 +112,11 @@ class DocumentUser extends DocumentUserMeta
 
     public function getLink()
     {
-        if ($this->document->type === DocumentType::BLANK) {
+        if ($this->isNewRecord) {
             return null;
+        }
+        if ($this->document->type === DocumentType::BLANK) {
+            return count($this->scans) > 0 ? $this->scans[0]->url : null;
         }
         return \Yii::$app->params['backendOrigin'] . Url::to(['/document/document/download-user', 'uid' => $this->uid, 'name' => $this->downloadName]);
     }
@@ -225,13 +236,13 @@ class DocumentUser extends DocumentUserMeta
         }
     }
 
-    public function signStart($signBy = null)
+    public function signStart($confirm = null)
     {
         if (!$this->document->isSignRequired) {
             throw new DocumentWrongFlowException('The document cannot be signed');
         }
 
-        $confirm = AuthModule::getInstance()->confirm($this->user);
+        $confirm = $confirm ?: AuthModule::getInstance()->confirm($this->user);
         if ($confirm) {
             $this->firstSignConfirmId = $confirm->primaryKey;
             $this->firstSignStatus = DocumentSignStatus::START;

@@ -84,6 +84,13 @@ class Document extends DocumentMeta
             ->column();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public static function instantiate($row)
+    {
+        return DocumentModule::instantiateClass(static::class, $row);
+    }
 
     /**
      * @inheritDoc
@@ -102,6 +109,9 @@ class Document extends DocumentMeta
 
     public function getLink()
     {
+        if ($this->type === DocumentType::BLANK || $this->isNewRecord) {
+            return null;
+        }
         return \Yii::$app->params['backendOrigin'] . Url::to(['/document/document/download', 'name' => $this->downloadName]);
     }
 

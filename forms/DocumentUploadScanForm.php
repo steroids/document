@@ -49,6 +49,11 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
      */
     public array $userDocuments = [];
 
+    /**
+     * @var int|null
+     */
+    public ?int $refId = null;
+
     public function getDocuments()
     {
         if (!$this->_documents) {
@@ -168,23 +173,41 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                 // Get document
                 $document = $this->documents[$name];
 
+                // User document params
+                $documentParams = [
+                    'documentId' => $document->primaryKey,
+                    'userId' => $this->user->getId(),
+                ];
+
                 // User document
-                $documentUser = DocumentUser::findOrCreate($name, $this->user->getId());
-                $documentUser->listenRelationIds('scans');
+                $documentUser = DocumentUser::findOne($documentParams);
+                if ($documentUser) {
+                    $documentUser->listenRelationIds('scans');
+                }
+                $scansIds = $documentUser ? $documentUser->scansIds : [];
 
                 // Save, if have changes
-                if (count(array_diff($fileIds, $documentUser->scansIds)) > 0) {
-                    $documentUser->scansIds = array_merge(
+                if (count(array_diff($fileIds, $scansIds)) > 0) {
+                    $scansIds = array_merge(
                         $fileIds,
                         $document->isScanMultiple
-                            ? $documentUser->scansIds
+                            ? $scansIds
                             : []
                     );
-                    $documentUser->scanStatus = DocumentScanStatus::UPLOADED;
-                    $documentUser->saveOrPanic();
+                    if ($documentUser || count($scansIds) > 0) {
+                        if (!$documentUser) {
+                            $documentUser = new DocumentUser($documentParams);
+                            $documentUser->listenRelationIds('scans');
+                        }
+
+                        $documentUser->scansIds = $scansIds;
+                        $documentUser->refId = $this->refId ?: $documentUser->refId;
+                        $documentUser->scanStatus = DocumentScanStatus::UPLOADED;
+                        $documentUser->saveOrPanic();
+                    }
                 }
 
-                $this->scans[$document->name] = $documentUser->scansIds;
+                $this->scans[$document->name] = $scansIds;
             }
 
             return true;

@@ -2,6 +2,7 @@
 
 namespace steroids\document\models;
 
+use steroids\document\DocumentModule;
 use steroids\document\models\meta\DocumentCategoryMeta;
 use steroids\billing\models\BillingCurrency;
 use yii\base\Exception;
@@ -38,5 +39,13 @@ class DocumentCategory extends DocumentCategoryMeta
             static::$_instances = static::find()->indexBy('name')->all();
         }
         return array_values(static::$_instances);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function instantiate($row)
+    {
+        return DocumentModule::instantiateClass(static::class, $row);
     }
 }
