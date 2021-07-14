@@ -27,6 +27,7 @@ class DocumentUserSearch extends DocumentUserSearchMeta
             'originalStatusTime',
             'originalModeratorId',
             'originalModeratorComment',
+            'createTime',
             'updateTime',
         ];
     }

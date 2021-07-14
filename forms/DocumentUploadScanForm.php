@@ -115,6 +115,7 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                         $documentUser->scans
                     );
                 },
+                'createTime',
                 'updateTime',
             ],
             'scans',
