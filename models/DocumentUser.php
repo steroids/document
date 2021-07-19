@@ -212,7 +212,7 @@ class DocumentUser extends DocumentUserMeta
      */
     public function getGroupedStatus($user = null)
     {
-        return DocumentGroupedStatus::create($this->document, $this, $user);
+        return $this->document ? DocumentGroupedStatus::create($this->document, $this, $user) : null;
     }
 
     /**
