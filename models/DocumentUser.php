@@ -50,7 +50,11 @@ class DocumentUser extends DocumentUserMeta
             'userId' => $userId,
             'refId' => $refId,
         ];
-        $model = static::findOne($params);
+        $model = static::find()
+            ->where($params)
+            ->orderBy(['id' => SORT_DESC])
+            ->limit(1)
+            ->one();
         if (!$model) {
             $model = new static($params);
             $model->saveOrPanic();
@@ -90,7 +94,7 @@ class DocumentUser extends DocumentUserMeta
 
     public function beforeSave($insert)
     {
-        if ($insert || !$this->codeNumber) {
+        if ($insert || $this->codeNumber === null) {
             $this->codeNumber = $this->document->codeLastNumber + 1;
             $this->document->codeLastNumber = $this->codeNumber;
             $this->document->saveOrPanic();
