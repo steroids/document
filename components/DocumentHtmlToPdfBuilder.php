@@ -26,6 +26,7 @@ class DocumentHtmlToPdfBuilder
         $html = str_replace('<html>', '<html><style>' . implode(' ', $styles) . '</style>', $html);
         $html = preg_replace('/{<\\/span><span style="[^"]+">([a-zA-Zа-яА-Я0-9]+)<\\/span><span style="[^"]+">}/u', '{$1}', $html);
         $html = preg_replace('/<figure( class="[^"]+")?( style="[^"]+")?><img src="([^"]+)"[^>]*><\/figure>/u', '<img src="$3"$1$2/>', $html);
+        $html = preg_replace('/<figure( class="[^"]+")?( style="[^"]+")?><table/u', '<figure><table $1$2', $html);
 
         // Insert variable values
         $html = str_replace(
