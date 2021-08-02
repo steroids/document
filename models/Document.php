@@ -103,7 +103,6 @@ class Document extends DocumentMeta
             ['codeLastNumber', 'default', 'value' => 0],
             [['!versionTime', '!codeLastNumber'], 'safe'],
             ['signMode', 'required', 'when' => fn() => $this->isSignRequired],
-            ['codeNumberMinLength', 'default', 'value' => DocumentModule::getInstance()->defaultCodeNumberMinLength],
         ];
     }
 

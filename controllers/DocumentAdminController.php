@@ -6,7 +6,9 @@ use steroids\document\forms\DocumentSearch;
 use steroids\document\models\Document;
 use steroids\document\models\DocumentCategory;
 use steroids\core\base\CrudApiController;
+use steroids\document\models\DocumentUser;
 use steroids\file\FileModule;
+use steroids\file\models\File;
 use yii\web\ForbiddenHttpException;
 
 class DocumentAdminController extends CrudApiController
@@ -20,6 +22,7 @@ class DocumentAdminController extends CrudApiController
             'admin.document' => static::apiMapCrud('/api/v1/admin/document/documents', [
                 'items' => [
                     'upload' => 'PUT /api/v1/admin/document/documents/upload',
+                    'upload-editor' => 'POST /api/v1/admin/document/documents/upload-editor',
                 ],
             ]),
         ];
@@ -59,12 +62,37 @@ class DocumentAdminController extends CrudApiController
                 'typeValues',
                 'isRequired',
             ],
+            'examples' => function(Document $document) {
+                return DocumentUser::anyToFrontend(
+                    DocumentUser::find()
+                        ->where(['documentId' => $document->id])
+                        ->orderBy(['id' => SORT_DESC])
+                        ->limit(10)
+                        ->all(),
+                    [
+                        'id',
+                        'uid',
+                        'code',
+                        'codeNumber',
+                        'link',
+                    ]
+                );
+            }
         ];
     }
 
     public function actionUpload()
     {
         return FileModule::getInstance()->upload()->getExtendedAttributes();
+    }
+
+    public function actionUploadEditor()
+    {
+        /** @var File $file */
+        $file = FileModule::getInstance()->upload();
+        return $file->getImagePreview(FileModule::PREVIEW_FULLSCREEN)->toFrontend([
+            'url',
+        ]);
     }
 
     /**

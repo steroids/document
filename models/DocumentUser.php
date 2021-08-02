@@ -94,10 +94,8 @@ class DocumentUser extends DocumentUserMeta
 
     public function beforeSave($insert)
     {
-        if ($insert || $this->codeNumber === null) {
-            $this->codeNumber = $this->document->codeLastNumber + 1;
-            $this->document->codeLastNumber = $this->codeNumber;
-            $this->document->saveOrPanic();
+        if (($insert || $this->codeNumber === null) && $this->document->isAutoCode) {
+            $this->applyCodeNumber(null, true);
         }
 
         if (!$insert) {
@@ -112,6 +110,17 @@ class DocumentUser extends DocumentUserMeta
         }
 
         return parent::beforeSave($insert);
+    }
+
+    public function applyCodeNumber($number = null, $save = true)
+    {
+        $this->codeNumber = $number ?: ($this->document->codeLastNumber + 1);
+        $this->document->codeLastNumber = $this->codeNumber;
+        $this->document->saveOrPanic();
+
+        if ($save) {
+            $this->saveOrPanic();
+        }
     }
 
     public function getLink()
@@ -132,26 +141,7 @@ class DocumentUser extends DocumentUserMeta
 
     public function download()
     {
-        switch ($this->document->type) {
-            case DocumentType::PDF:
-                return $this->document->download();
-
-            case DocumentType::TEMPLATE_HTML:
-                return DocumentHtmlToPdfBuilder::build(
-                    $this->document->name . '_' . $this->uid,
-                    $this->document->templateHtml,
-                    array_merge(
-                        $this->userParams,
-                        $this->refParams,
-                        $this->params,
-                    )
-                );
-
-            case DocumentType::BLANK:
-                throw new Exception('Nothing to download. Document type - "blank"');
-        }
-
-        throw new Exception('Unsupported document type: ' . $this->document->type);
+        return DocumentModule::getInstance()->builder->download($this);
     }
 
     /**
@@ -224,8 +214,9 @@ class DocumentUser extends DocumentUserMeta
      */
     public function getCode()
     {
+        $codeNumberMinLength = $this->document->codeNumberMinLength ?: DocumentModule::getInstance()->defaultCodeNumberMinLength;
         return $this->document->codePrefix
-            . str_pad((string)$this->codeNumber, $this->document->codeNumberMinLength, '0', STR_PAD_LEFT);
+            . str_pad((string)$this->codeNumber, $codeNumberMinLength, '0', STR_PAD_LEFT);
     }
 
     public function markRead()

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace steroids\document\controllers;
 
 use steroids\auth\forms\ConfirmForm;
@@ -13,7 +12,6 @@ use yii\helpers\StringHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 
-
 class DocumentUserController extends Controller
 {
     public static function apiMap()
@@ -21,23 +19,83 @@ class DocumentUserController extends Controller
         return [
             'document-user' => [
                 'items' => [
-                    'batch-sign-start' => 'POST /api/v1/document/batch-sign-start',
-                    'batch-sign-confirm' => 'POST /api/v1/document/batch-sign-confirm',
+                    'batch-sign-start' => 'POST /api/v1/document/user/batch-sign-start',
+                    'batch-sign-confirm' => 'POST /api/v1/document/user/batch-sign-confirm',
                     'create' => 'POST /api/v1/document/<name>',
                     'upload' => 'PUT /api/v1/document/<name>/upload',
-                    'sign-start' => 'POST /api/v1/document/<uid>/sign-start',
-                    'sign-confirm' => 'POST /api/v1/document/<uid>/sign-confirm',
-                    'mark-read' => 'POST /api/v1/document/<uid>/mark-read',
+                    'user-get-last' => 'GET /api/v1/document/user/<name>/last',
+                    'sign-start' => 'POST /api/v1/document/user/<uid>/sign-start',
+                    'sign-confirm' => 'POST /api/v1/document/user/<uid>/sign-confirm',
+                    'mark-read' => 'POST /api/v1/document/user/<uid>/mark-read',
+                    'user-get' => 'GET /api/v1/document/user/<uid>',
                 ],
             ],
         ];
     }
 
-    public function actionCreate(string $name)
+    /**
+     * @param string $uid
+     * @return DocumentUser|array
+     */
+    public function actionUserGet(string $uid)
     {
-        return DocumentUser::findOrCreate(\Yii::$app->user->model->primaryKey, $name);
+        return DocumentUser::findOrPanic(['uid' => $uid])->toFrontend([
+            '*',
+            'document',
+        ]);
     }
 
+    /**
+     * @param string $name
+     * @return array|DocumentUser|\yii\db\ActiveRecord|null
+     * @throws \yii\base\Exception
+     */
+    public function actionUserGetLast(string $name)
+    {
+        $document = Document::getByName($name);
+        if (!$document) {
+            throw new NotFoundHttpException('Document not found: ' . $name);
+        }
+
+        $params = [
+            'userId' => \Yii::$app->user->id,
+            'documentId' => $document->id,
+        ];
+
+        $documentUser = DocumentUser::find()
+            ->where($params)
+            ->orderBy(['id' => SORT_DESC])
+            ->limit(1)
+            ->one();
+        if (!$documentUser) {
+            // Create blank
+            $documentUser = new DocumentUser($params);
+            $documentUser->populateRelation('document', $document);
+        }
+        return $documentUser->toFrontend([
+            '*',
+            'document',
+        ]);
+    }
+
+    /**
+     * @param string $name
+     * @return DocumentUser|null
+     */
+    public function actionCreate(string $name)
+    {
+        return DocumentUser::findOrCreate($name, \Yii::$app->user->id);
+    }
+
+    /**
+     * @param $name
+     * @return array
+     * @throws \steroids\core\exceptions\ModelSaveException
+     * @throws \steroids\file\exceptions\FileException
+     * @throws \steroids\file\exceptions\FileUserException
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
+     */
     public function actionUpload($name)
     {
         // Upload file

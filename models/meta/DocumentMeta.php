@@ -37,6 +37,7 @@ use steroids\document\models\DocumentTag;
  * @property integer $codeNumberMinLength
  * @property boolean $isScanMultiple
  * @property integer $position
+ * @property boolean $isAutoCode
  * @property-read File $file
  * @property-read DocumentCategory $category
  * @property-read DocumentParam[] $params
@@ -78,7 +79,7 @@ abstract class DocumentMeta extends Model
             ['type', 'in', 'range' => DocumentType::getKeys()],
             ['templateHtml', 'string'],
             ['signMode', 'in', 'range' => DocumentSignMode::getKeys()],
-            [['isSignRequired', 'isScanRequired', 'isOriginalRequired', 'isReadRequired', 'isPaymentRequired', 'isVerificationRequired', 'isVisible', 'isScanMultiple'], 'steroids\\core\\validators\\ExtBooleanValidator'],
+            [['isSignRequired', 'isScanRequired', 'isOriginalRequired', 'isReadRequired', 'isPaymentRequired', 'isVerificationRequired', 'isVisible', 'isScanMultiple', 'isAutoCode'], 'steroids\\core\\validators\\ExtBooleanValidator'],
             ['versionTime', 'date', 'format' => 'php:Y-m-d H:i:s'],
         ];
     }
@@ -245,6 +246,11 @@ abstract class DocumentMeta extends Model
             'position' => [
                 'label' => Yii::t('steroids', 'Порядок'),
                 'appType' => 'integer',
+                'isPublishToFrontend' => false
+            ],
+            'isAutoCode' => [
+                'label' => Yii::t('steroids', 'Автоматически присваивать номер договора'),
+                'appType' => 'boolean',
                 'isPublishToFrontend' => false
             ]
         ]);

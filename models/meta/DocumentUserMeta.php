@@ -46,6 +46,7 @@ use steroids\file\models\File;
  * @property string $scanModeratorComment
  * @property integer $originalModeratorId
  * @property string $originalModeratorComment
+ * @property string $terminationTime
  * @property-read Document $document
  * @property-read AuthConfirm $firstSignConfirm
  * @property-read AuthConfirm $secondSignConfirm
@@ -88,6 +89,7 @@ abstract class DocumentUserMeta extends Model
             'scanModeratorComment',
             'originalModeratorId',
             'originalModeratorComment',
+            'terminationTime',
         ];
     }
 
@@ -98,7 +100,7 @@ abstract class DocumentUserMeta extends Model
             ['uid', 'string', 'max' => 255],
             [['documentId', 'userId', 'refId', 'codeNumber', 'firstSignConfirmId', 'secondSignConfirmId', 'secondUserId', 'scanModeratorId', 'originalModeratorId'], 'integer'],
             [['firstSignStatus', 'secondSignStatus'], 'in', 'range' => DocumentSignStatus::getKeys()],
-            [['firstSignStatusTime', 'secondSignStatusTime', 'scanStatusTime', 'originalStatusTime', 'versionTime', 'verificationStatusTime', 'paidTime', 'readTime'], 'date', 'format' => 'php:Y-m-d H:i:s'],
+            [['firstSignStatusTime', 'secondSignStatusTime', 'scanStatusTime', 'originalStatusTime', 'versionTime', 'verificationStatusTime', 'paidTime', 'readTime', 'terminationTime'], 'date', 'format' => 'php:Y-m-d H:i:s'],
             ['scanStatus', 'in', 'range' => DocumentScanStatus::getKeys()],
             ['originalStatus', 'in', 'range' => DocumentOriginalStatus::getKeys()],
             [['paramsJson', 'scanModeratorComment', 'originalModeratorComment'], 'string'],
@@ -317,6 +319,11 @@ abstract class DocumentUserMeta extends Model
             'originalModeratorComment' => [
                 'label' => Yii::t('steroids', 'Комментарий модератора по оригиналу'),
                 'appType' => 'text',
+                'isPublishToFrontend' => true
+            ],
+            'terminationTime' => [
+                'label' => Yii::t('steroids', 'Дата расторжения договора'),
+                'appType' => 'dateTime',
                 'isPublishToFrontend' => true
             ]
         ]);
