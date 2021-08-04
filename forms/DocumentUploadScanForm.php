@@ -99,6 +99,7 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                     ],
                     'updateTime',
                     'versionTime',
+                    'params',
                 ],
                 'groupedStatus',
                 'scanStatus',
