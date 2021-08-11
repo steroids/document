@@ -137,26 +137,32 @@ class DocumentUploadScanForm extends DocumentUploadScanFormMeta
                 'documentId' => ArrayHelper::getColumn($this->documents, 'id'),
             ])
             ->with('scans')
-            ->indexBy('documentId')
             ->all();
 
         // Store all user documents
         foreach ($this->documents as $document) {
-            // Find DocumentUser
-            $userDocument = ArrayHelper::getValue($userDocuments, $document->id);
-            if (!$userDocument) {
-                $userDocument = new DocumentUser([
-                    'userId' => $this->user->getId(),
-                    'documentId' => $document->id,
-                ]);
+            $filteredUserDocuments = array_filter(
+                $userDocuments,
+                fn($userDocument) => $userDocument->documentId === $document->id
+            );
+            if (empty($filteredUserDocuments)) {
+                $filteredUserDocuments[] =
+                    new DocumentUser([
+                        'userId' => $this->user->getId(),
+                        'documentId' => $document->id,
+                    ])
+                ;
             }
-            $userDocument->populateRelation('document', $document);
 
-            // Add ids value
-            $this->scans[$document->name] = ArrayHelper::getColumn($userDocument->scans, 'id');
+            foreach ($filteredUserDocuments as $filteredUserDocument) {
+                $filteredUserDocument->populateRelation('document', $document);
 
-            // Add to frontend
-            $this->userDocuments[] = $userDocument;
+                // Add ids value
+                $this->scans[$document->name] = ArrayHelper::getColumn($filteredUserDocument->scans, 'id');
+
+                // Add to frontend
+                $this->userDocuments[] = $filteredUserDocument;
+            }
         }
     }
 

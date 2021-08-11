@@ -5,9 +5,7 @@ namespace steroids\document\models;
 use steroids\document\DocumentModule;
 use steroids\document\enums\DocumentType;
 use steroids\document\models\meta\DocumentMeta;
-use steroids\billing\models\BillingCurrency;
 use yii\base\Exception;
-use yii\helpers\FileHelper;
 use yii\helpers\Url;
 use yii\web\NotFoundHttpException;
 

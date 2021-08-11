@@ -34,7 +34,7 @@ use yii\web\IdentityInterface;
  * @property-read string $code
  * @property-read string $downloadName
  */
-class   DocumentUser extends DocumentUserMeta
+class DocumentUser extends DocumentUserMeta
 {
     /**
      * @var IDocumentReference|Model|null|bool

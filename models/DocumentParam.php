@@ -21,6 +21,7 @@ class DocumentParam extends DocumentParamMeta
         return [
             ...parent::rules(),
             ['type', 'default', 'value' => DocumentParamType::STRING],
+            ['name', 'match', 'pattern' => '/^[\p{Latin}_]+$/'], // only latin symbols and _
         ];
     }
 }
