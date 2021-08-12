@@ -70,15 +70,17 @@ class DocumentUserCreateForm extends DocumentUserCreateFormMeta
     public function init()
     {
         parent::init();
-        foreach ($this->document->params as $documentParam) {
-            $attribute = $documentParam->name;
-            // add new attribute and set value
-            $this->$attribute = ArrayHelper::getValue($this->params, $attribute);
-            // also add this value $userDocumentParams
-            $this->userDocumentParams[$attribute] = $this->$attribute;
-            if ($documentParam->isRequired) {
-                // fill requiredParams for add required rule
-                $this->requiredParams[] = $attribute;
+        if ($this->document instanceof Document) {
+            foreach ($this->document->params as $documentParam) {
+                $attribute = $documentParam->name;
+                // add new attribute and set value
+                $this->$attribute = ArrayHelper::getValue($this->params, $attribute);
+                // also add this value $userDocumentParams
+                $this->userDocumentParams[$attribute] = $this->$attribute;
+                if ($documentParam->isRequired) {
+                    // fill requiredParams for add required rule
+                    $this->requiredParams[] = $attribute;
+                }
             }
         }
     }
