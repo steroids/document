@@ -4,6 +4,7 @@ namespace steroids\document\forms;
 
 use steroids\auth\UserInterface;
 use steroids\core\exceptions\ModelSaveException;
+use steroids\document\DocumentModule;
 use steroids\document\forms\meta\DocumentUserCreateFormMeta;
 use steroids\document\models\Document;
 use steroids\document\models\DocumentUser;
@@ -115,7 +116,7 @@ class DocumentUserCreateForm extends DocumentUserCreateFormMeta
     public function create()
     {
         if ($this->validate()) {
-            $userDocument = new DocumentUser([
+            $userDocument = DocumentModule::instantiateClass(DocumentUser::class, [
                 'documentId' => $this->document->getPrimaryKey(),
                 'userId' => $this->user->getId(),
                 'refId' => $this->refId,
