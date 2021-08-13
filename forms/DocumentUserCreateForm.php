@@ -8,6 +8,7 @@ use steroids\document\DocumentModule;
 use steroids\document\forms\meta\DocumentUserCreateFormMeta;
 use steroids\document\models\Document;
 use steroids\document\models\DocumentUser;
+use steroids\document\schemas\DocumentUserSchema;
 use yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
@@ -42,6 +43,27 @@ class DocumentUserCreateForm extends DocumentUserCreateFormMeta
      * @var array
      */
     private $userDocumentParams = [];
+
+    /**
+     * @var DocumentUser
+     */
+    private $documentUser;
+
+    /**
+     * @inheritDoc
+     */
+    public function fieldsSchema()
+    {
+        return DocumentModule::instantiateClass(DocumentUserSchema::class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createSchema($schema, $model)
+    {
+        return new $schema(['model' => $this->documentUser]);
+    }
 
     /**
      * Redefine Component __set() base method for dynamically add attributes to Form
@@ -116,14 +138,14 @@ class DocumentUserCreateForm extends DocumentUserCreateFormMeta
     public function create()
     {
         if ($this->validate()) {
-            $userDocument = DocumentModule::instantiateClass(DocumentUser::class, [
+            $this->documentUser = DocumentModule::instantiateClass(DocumentUser::class, [
                 'documentId' => $this->document->getPrimaryKey(),
                 'userId' => $this->user->getId(),
                 'refId' => $this->refId,
                 'paramsJson' => Json::encode($this->userDocumentParams),
             ]);
-            $userDocument->saveOrPanic();
-            return $userDocument;
+            $this->documentUser->saveOrPanic();
+            return $this->documentUser;
         }
 
         return null;
@@ -149,13 +171,15 @@ class DocumentUserCreateForm extends DocumentUserCreateFormMeta
     private function prepareDocumentParamRules()
     {
         $result = [];
-        foreach ($this->documentParamRules() as $paramRule) {
-            foreach ($this->document->params as $param) {
-                // If document param is equal rule attribute or in attributes list, take it
-                if ($param->name === $paramRule[0] || is_array($paramRule[0]) && in_array($param->name, $paramRule[0])) {
-                    // Set rule attribute to param. Its if we have list of attributes in rule
-                    $paramRule[0] = $param->name;
-                    $result[] = $paramRule;
+        if ($this->document instanceof Document) {
+            foreach ($this->documentParamRules() as $paramRule) {
+                foreach ($this->document->params as $param) {
+                    // If document param is equal rule attribute or in attributes list, take it
+                    if ($param->name === $paramRule[0] || is_array($paramRule[0]) && in_array($param->name, $paramRule[0])) {
+                        // Set rule attribute to param. Its if we have list of attributes in rule
+                        $paramRule[0] = $param->name;
+                        $result[] = $paramRule;
+                    }
                 }
             }
         }
