@@ -37,8 +37,9 @@ class DocumentUserSearch extends DocumentUserSearchMeta
         parent::prepare($query);
 
         $query
+            ->joinWith('document document')
             ->andFilterWhere([
-                'categoryId' => $this->categoryId,
+                'document.categoryId' => $this->categoryId,
                 'userId' => $this->userId,
                 'codeNumber' => $this->codeNumber,
             ])
